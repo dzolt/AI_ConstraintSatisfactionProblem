@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+}
+
+group 'pl.zoltowski.damian'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'junit:junit:4.12'
+    compileOnly 'org.projectlombok:lombok:1.18.16'
+    annotationProcessor 'org.projectlombok:lombok:1.18.16'
+    implementation 'org.jgrapht:jgrapht-ext:1.0.1'
+    compile 'org.jgrapht:jgrapht-core:1.0.1'
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.16'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+}
