@@ -4,18 +4,31 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSerializer;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import pl.zoltowski.damian.problem.Problem;
+import pl.zoltowski.damian.python.PythonProcessBuilder;
 import pl.zoltowski.damian.utils.MCPJsonSerializer;
 import pl.zoltowski.damian.utils.SegmentHelper;
-import pl.zoltowski.damian.utils.dataType.*;
-import pl.zoltowski.damian.problem.Problem;
+import pl.zoltowski.damian.utils.dataType.Graph;
+import pl.zoltowski.damian.utils.dataType.Point;
+import pl.zoltowski.damian.utils.dataType.Segment;
+import pl.zoltowski.damian.utils.dataType.Tuple;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
-import static pl.zoltowski.damian.utils.Util.*;
+import static pl.zoltowski.damian.utils.Util.calculateDistanceBetweenPoints;
+import static pl.zoltowski.damian.utils.Util.drawGraph;
+import static pl.zoltowski.damian.utils.Util.isPointOutsideBoard;
+import static pl.zoltowski.damian.utils.Util.pDistance;
 
 @Data
 @NoArgsConstructor
@@ -25,6 +38,7 @@ public class MapColoringProblem implements Problem {
     private int vertexesNumber;
     private int maxColourNumber;
     private Graph graph;
+    private int[] colors;
 
     public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber) {
         this.width = width;
@@ -35,6 +49,8 @@ public class MapColoringProblem implements Problem {
         this.vertexesNumber = vertexesNumber;
         this.maxColourNumber = maxColourNumber;
         this.graph = new Graph();
+        this.colors = new int[this.vertexesNumber];
+        Arrays.fill(this.colors, 0);
     }
 
     public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, Graph graph) {
@@ -46,6 +62,8 @@ public class MapColoringProblem implements Problem {
         this.vertexesNumber = vertexesNumber;
         this.maxColourNumber = maxColourNumber;
         this.graph = graph;
+        this.colors = new int[this.vertexesNumber];
+        Arrays.fill(this.colors, 0);
     }
 
     public void init() {
@@ -79,7 +97,6 @@ public class MapColoringProblem implements Problem {
                         distances.get(pointAndDistances.getSecond().get(0)).remove(pointAndDistances.getFirst());
                         //remove point from closes proximity array
                         pointAndDistances.getSecond().remove(0);
-
                     } else {
                         distances.get(pointAndDistances.getSecond().get(0)).remove(pointAndDistances.getFirst());
                         //remove point from closes proximity array
@@ -106,7 +123,7 @@ public class MapColoringProblem implements Problem {
                 if ((!vertex.isSame(startingPoint) && !connection.isSame(endingPoint)) || (!vertex.isSame(endingPoint) && !connection.isSame(startingPoint))) {
                     //check if intersection point isn't start or end point and is in bound of segment
                     if (sh.doIntersect(new Segment(startingPoint, endingPoint), new Segment(vertex, connection)) ||
-                            isLineIntersectingOtherVertexes(startingPoint, endingPoint, graph.getKeys())
+                        isLineIntersectingOtherVertexes(startingPoint, endingPoint, graph.getKeys())
                     ) {
                         return true;
                     }
@@ -125,7 +142,7 @@ public class MapColoringProblem implements Problem {
                 double otherVertexYMaxRange = Math.max(startingPoint.getY(), endingPoint.getY());
                 double otherVertexYMinRange = Math.min(startingPoint.getY(), endingPoint.getY());
                 if (otherVertex.getX() <= otherVertexXMaxRange && otherVertex.getX() >= otherVertexXMinRange &&
-                        otherVertex.getY() <= otherVertexYMaxRange && otherVertex.getY() >= otherVertexYMinRange && pDistance(startingPoint, endingPoint, otherVertex) == 0.0) {
+                    otherVertex.getY() <= otherVertexYMaxRange && otherVertex.getY() >= otherVertexYMinRange && pDistance(startingPoint, endingPoint, otherVertex) == 0.0) {
                     System.out.println("LINE " + startingPoint + ", " + endingPoint + " IS INTERSECTING WITH OTHER VERTEX " + otherVertex);
                     return true;
                 }
@@ -155,6 +172,67 @@ public class MapColoringProblem implements Problem {
     public void run() {
         init();
         createConnections();
+        int[][] matrix = this.transformGraph();
+        if(this.graphColoring(matrix)) {
+            try {
+                drawGraph(this, new PythonProcessBuilder());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private boolean isSafeToColor(int vertexIndex, int[][] graphMatrix, int colorToCheck) {
+        //check for each edge
+        for (int i = 0; i < this.vertexesNumber; i++)
+            if (graphMatrix[vertexIndex][i] == 1 && colorToCheck == this.colors[i])
+                return false;
+        return true;
+    }
+
+    private boolean graphColorUtil(int[][] graphMatrix, int vertexIndex) {
+        // If all vertices are assigned a color then return true
+        if (vertexIndex == this.vertexesNumber)
+            return true;
+
+        // Try different colors for vertex V
+        for (int i = 1; i <= this.maxColourNumber; i++) {
+            // check for assignment safety
+            if (isSafeToColor(vertexIndex, graphMatrix, i)) {
+                this.colors[vertexIndex] = i;
+                // recursion for checking other vertices
+                if (graphColorUtil(graphMatrix, vertexIndex + 1)) {
+                    return true;
+                }
+                // if color doesnt lead to solution
+                this.colors[vertexIndex] = 0;
+            }
+        }
+        // If no color can be assigned to  vertex
+        return false;
+    }
+
+    private void printColoringSolution(int color[]) {
+        System.out.println("Color schema for vertices are: ");
+        for (int i = 0; i < this.vertexesNumber; i++)
+            System.out.println(this.graph.getKeys().get(i) + " ---> " + color[i]);
+    }
+
+    /**
+     * It returns false if the m colors cannot be assigned
+     * otherwise return true and
+     * print color assignment result to all vertices.
+     */
+    private boolean graphColoring(int[][] graphMatrix) {
+        // Call graphColorUtil() for vertex 0
+        if (!graphColorUtil(graphMatrix, 0)) {
+            System.out.println("Color schema not possible");
+            return false;
+        }
+
+        // Print the color schema of vertices
+        printColoringSolution(this.colors);
+        return true;
     }
 
 
@@ -174,5 +252,31 @@ public class MapColoringProblem implements Problem {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public int[][] transformGraph() {
+        int[][] graphTransformed = new int[this.vertexesNumber][this.vertexesNumber];
+        List<Point> allVertexes = this.graph.getKeys();
+
+        for (int i = 0; i < allVertexes.size(); i++) {
+            Point currentPoint = allVertexes.get(i);
+
+            for (int j = 0; j < allVertexes.size(); j++) {
+                Point pointToCheck = allVertexes.get(j);
+
+                if (i == j) {
+                    graphTransformed[i][j] = 0;
+                } else {
+                    if (this.graph.getAdjVertices(currentPoint).contains(pointToCheck)) {
+                        graphTransformed[i][j] = 1;
+                    } else {
+                        graphTransformed[i][j] = 0;
+                    }
+                }
+
+            }
+        }
+
+        return graphTransformed;
     }
 }

@@ -1,7 +1,22 @@
 package pl.zoltowski.damian.utils;
 
+import com.mxgraph.layout.mxCircleLayout;
+import com.mxgraph.layout.mxIGraphLayout;
+import com.mxgraph.util.mxCellRenderer;
+import org.jgrapht.Graph;
+import org.jgrapht.ext.JGraphXAdapter;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.SimpleGraph;
+import pl.zoltowski.damian.problem.coloring.MapColoringProblem;
+import pl.zoltowski.damian.python.PythonProcessBuilder;
 import pl.zoltowski.damian.utils.dataType.Point;
 import pl.zoltowski.damian.utils.dataType.Segment;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class Util {
 
@@ -43,5 +58,32 @@ public class Util {
 
     public static boolean doIntersect(Segment s1, Segment s2) {
         return segmentHelper.doIntersect(s1,s2);
+    }
+
+    public static void drawGraph(MapColoringProblem mcp, PythonProcessBuilder ppb) throws IOException {
+        for (Point p : mcp.getGraph().getKeys()) {
+            System.out.println(p);
+        }
+        mcp.saveProblemToJson("graph.json");
+        ppb.generateGraphImageToFile("graph.json", "graph.png");
+        System.out.println(mcp.getGraph());
+        Graph<Point, DefaultEdge> g =
+          new SimpleGraph<>(DefaultEdge.class);
+        for (Point p : mcp.getGraph().getKeys()) {
+            g.addVertex(p);
+        }
+        for (Point p : mcp.getGraph().getKeys()) {
+            for (Point edge : mcp.getGraph().getAdjVertices(p)) {
+                g.addEdge(p, edge);
+            }
+        }
+        JGraphXAdapter<Point, DefaultEdge> graphAdapter =
+          new JGraphXAdapter<Point, DefaultEdge>(g);
+        mxIGraphLayout layout = new mxCircleLayout(graphAdapter);
+        layout.execute(graphAdapter.getDefaultParent());
+        BufferedImage image =
+          mxCellRenderer.createBufferedImage(graphAdapter, null, 2, Color.WHITE, true, null);
+        File imgFile = new File("src/main/resources/graph.png");
+        ImageIO.write(image, "PNG", imgFile);
     }
 }

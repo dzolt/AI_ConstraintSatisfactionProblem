@@ -53,4 +53,8 @@ public class Graph {
         return new ArrayList<>(adjVertices.keySet());
     }
 
+    public Point getVertex(int index) {
+        return getKeys().get(index);
+    }
+
 }
