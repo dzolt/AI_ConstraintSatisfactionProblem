@@ -2,18 +2,17 @@ package pl.zoltowski.damian;
 
 
 import pl.zoltowski.damian.problem.coloring.MapColoringProblem;
-import pl.zoltowski.damian.python.PythonProcessBuilder;
+import pl.zoltowski.damian.problem.einstain.EinsteinProblem;
 
-import java.io.IOException;
 
 public class CSP {
-    public static void main(String[] args) throws IOException {
-        PythonProcessBuilder ppb = new PythonProcessBuilder();
+    public static void main(String[] args){
         MapColoringProblem mcp = new MapColoringProblem(6, 5, 5, 3);
-
         mcp.run();
 
+        EinsteinProblem ep = new EinsteinProblem();
 
+        ep.run();
 
     }
 
