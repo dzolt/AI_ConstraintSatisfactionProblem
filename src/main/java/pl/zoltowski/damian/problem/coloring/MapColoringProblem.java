@@ -4,7 +4,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSerializer;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import pl.zoltowski.damian.Backtracking;
 import pl.zoltowski.damian.problem.Problem;
+import pl.zoltowski.damian.problem.coloring.constraint.DifferentNeighbourColors;
+import pl.zoltowski.damian.problem.coloring.domain.MCPDomain;
 import pl.zoltowski.damian.python.PythonProcessBuilder;
 import pl.zoltowski.damian.utils.MCPJsonSerializer;
 import pl.zoltowski.damian.utils.SegmentHelper;
@@ -64,6 +67,27 @@ public class MapColoringProblem implements Problem {
         this.graph = graph;
         this.colors = new int[this.vertexesNumber];
         Arrays.fill(this.colors, 0);
+    }
+
+    public void runGeneric() {
+        init();
+        createConnections();
+        //list of variables
+        List<Point> variables = this.graph.getKeys();
+        //map of domains
+        Map<Point, List<MCPDomain>> domains = new HashMap<>();
+        for (Point p : variables) {
+            domains.put(p, new ArrayList<>(Arrays.asList(MCPDomain.values())));
+        }
+
+        Backtracking<Point, MCPDomain> backtracking = new Backtracking<>(variables, domains);
+        backtracking.addConstraint(new DifferentNeighbourColors(variables));
+
+
+        List<Map<Point, MCPDomain>> result = backtracking.backtrackingSearch();
+
+
+        printResult(result);
     }
 
     public void init() {
@@ -173,7 +197,7 @@ public class MapColoringProblem implements Problem {
         init();
         createConnections();
         int[][] matrix = this.transformGraph();
-        if(this.graphColoring(matrix)) {
+        if (this.graphColoring(matrix)) {
             try {
                 drawGraph(this, new PythonProcessBuilder());
             } catch (IOException e) {
@@ -278,5 +302,13 @@ public class MapColoringProblem implements Problem {
         }
 
         return graphTransformed;
+    }
+
+    private void printResult(List<Map<Point, MCPDomain>> result) {
+        int i = 0;
+        for (Map<Point, MCPDomain> assignment : result) {
+            System.out.println("SOLUTION: " + i++);
+            System.out.println(assignment);
+        }
     }
 }
