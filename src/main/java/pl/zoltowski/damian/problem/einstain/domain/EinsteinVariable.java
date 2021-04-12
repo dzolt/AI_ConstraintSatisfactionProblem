@@ -1,6 +1,6 @@
 package pl.zoltowski.damian.problem.einstain.domain;
 
-public enum Variable {
+public enum EinsteinVariable {
     NORWEGIAN, ENGLISHMAN, DANE, GERMAN, SWEDE,
     LIGHT, CIGAR, PIPE, NO_FILTER, MENTHOL,
     TEA, MILK, WATER, BEER, COFFEE,

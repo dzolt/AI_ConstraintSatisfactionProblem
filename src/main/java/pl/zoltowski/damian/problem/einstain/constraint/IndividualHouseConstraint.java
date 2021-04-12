@@ -1,25 +1,25 @@
 package pl.zoltowski.damian.problem.einstain.constraint;
 
 import pl.zoltowski.damian.Constraint;
-import pl.zoltowski.damian.problem.einstain.domain.Domain;
-import pl.zoltowski.damian.problem.einstain.domain.Variable;
+import pl.zoltowski.damian.problem.einstain.domain.EinsteinDomain;
+import pl.zoltowski.damian.problem.einstain.domain.EinsteinVariable;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 
-public class IndividualHouseConstraint extends Constraint<Variable, Domain> {
+public class IndividualHouseConstraint extends Constraint<EinsteinVariable, EinsteinDomain> {
 
-    public IndividualHouseConstraint(Variable... variables) {
+    public IndividualHouseConstraint(EinsteinVariable... variables) {
         super();
         this.variables.addAll(Arrays.asList(variables));
     }
 
     @Override
-    public boolean satisfied(Map<Variable, Domain> assigment) {
-        HashSet<Domain> used = new HashSet<>();
+    public boolean satisfied(Map<EinsteinVariable, EinsteinDomain> assigment) {
+        HashSet<EinsteinDomain> used = new HashSet<>();
 
-        for(Variable v: this.variables) {
+        for(EinsteinVariable v: this.variables) {
             if(assigment.containsKey(v) && used.contains(assigment.get(v))) {
                 return false;
             }

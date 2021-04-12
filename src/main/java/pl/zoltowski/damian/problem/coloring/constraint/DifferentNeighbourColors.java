@@ -11,21 +11,19 @@ import java.util.Map;
 
 public class DifferentNeighbourColors extends Constraint<Point, MCPDomain> {
 
-    public DifferentNeighbourColors(List<Point> points) {
+    public DifferentNeighbourColors(Point variable1, Point variable2) {
         super();
-        this.variables.addAll(points);
+        this.variables.add(variable1);
+        this.variables.add(variable2);
     }
 
     @Override
     public boolean satisfied(Map<Point, MCPDomain> assigment) {
-        HashSet<MCPDomain> used = new HashSet<>();
 
-        for(Point v: this.variables) {
-            if(assigment.containsKey(v) && used.contains(assigment.get(v))) {
-                return false;
-            }
-            used.add(assigment.get(v));
+        if(!containsAllKeys(assigment)) {
+            return true;
         }
-        return true;
+
+        return assigment.get(variables.get(0)) != assigment.get(variables.get(1));
     }
 }

@@ -1,21 +1,21 @@
 package pl.zoltowski.damian.problem.einstain.constraint;
 
 import pl.zoltowski.damian.Constraint;
-import pl.zoltowski.damian.problem.einstain.domain.Domain;
-import pl.zoltowski.damian.problem.einstain.domain.Variable;
+import pl.zoltowski.damian.problem.einstain.domain.EinsteinDomain;
+import pl.zoltowski.damian.problem.einstain.domain.EinsteinVariable;
 
 import java.util.Map;
 
-public class LeftNeighbourConstraint extends Constraint<Variable, Domain> {
+public class LeftNeighbourConstraint extends Constraint<EinsteinVariable, EinsteinDomain> {
 
-    public LeftNeighbourConstraint(Variable variable1, Variable variable2) {
+    public LeftNeighbourConstraint(EinsteinVariable variable1, EinsteinVariable variable2) {
         super();
         this.variables.add(variable1);
         this.variables.add(variable2);
     }
 
     @Override
-    public boolean satisfied(Map<Variable, Domain> assigment) {
+    public boolean satisfied(Map<EinsteinVariable, EinsteinDomain> assigment) {
         if(!containsAllKeys(assigment)) {
             return true;
         }

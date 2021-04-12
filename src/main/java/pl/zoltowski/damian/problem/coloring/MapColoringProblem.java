@@ -69,25 +69,25 @@ public class MapColoringProblem implements Problem {
         Arrays.fill(this.colors, 0);
     }
 
-    public void runGeneric() {
+    public void runSpecific() {
         init();
         createConnections();
-        //list of variables
-        List<Point> variables = this.graph.getKeys();
-        //map of domains
-        Map<Point, List<MCPDomain>> domains = new HashMap<>();
-        for (Point p : variables) {
-            domains.put(p, new ArrayList<>(Arrays.asList(MCPDomain.values())));
+        int[][] matrix = this.transformGraph();
+        if (this.graphColoring(matrix)) {
+            try {
+                drawGraph(this, new PythonProcessBuilder());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
 
-        Backtracking<Point, MCPDomain> backtracking = new Backtracking<>(variables, domains);
-        backtracking.addConstraint(new DifferentNeighbourColors(variables));
-
-
-        List<Map<Point, MCPDomain>> result = backtracking.backtrackingSearch();
-
-
-        printResult(result);
+    private void applyConstraints(Backtracking<Point, MCPDomain> backtracking) {
+        for(Point vertex: this.graph.getKeys()){
+            for(Point connection: this.graph.getAdjVertices(vertex)) {
+                backtracking.addConstraint(new DifferentNeighbourColors(vertex, connection));
+            }
+        }
     }
 
     public void init() {
@@ -196,14 +196,23 @@ public class MapColoringProblem implements Problem {
     public void run() {
         init();
         createConnections();
-        int[][] matrix = this.transformGraph();
-        if (this.graphColoring(matrix)) {
-            try {
-                drawGraph(this, new PythonProcessBuilder());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        //list of variables
+        List<Point> variables = this.graph.getKeys();
+        //map of domains
+        Map<Point, List<MCPDomain>> domains = new HashMap<>();
+        for (Point p : variables) {
+            //limit to max color number
+            domains.put(p, new ArrayList<>(MCPDomain.BLUE.getNDomainValues(this.maxColourNumber)));
         }
+
+        Backtracking<Point, MCPDomain> backtracking = new Backtracking<>(variables, domains);
+        applyConstraints(backtracking);
+
+
+        List<Map<Point, MCPDomain>> result = backtracking.backtrackingSearch();
+
+
+        printResult(result);
     }
 
     private boolean isSafeToColor(int vertexIndex, int[][] graphMatrix, int colorToCheck) {

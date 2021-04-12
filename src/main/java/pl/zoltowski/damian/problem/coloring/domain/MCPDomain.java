@@ -3,6 +3,10 @@ package pl.zoltowski.damian.problem.coloring.domain;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 @Getter
 @AllArgsConstructor
 public enum MCPDomain {
@@ -12,4 +16,15 @@ public enum MCPDomain {
     DODGERBLUE(13), KHAKI(14), DEEPPINK(15), LIGHTPINK(16);
 
     private int number;
+
+    public List<MCPDomain> getNDomainValues(int N) {
+        if(N > MCPDomain.values().length) {
+            throw new IllegalArgumentException("Value greater than existing colors");
+        }
+        List<MCPDomain> domainValues = new ArrayList<>();
+        domainValues.addAll(
+          Arrays.asList(MCPDomain.values()).subList(0, N)
+        );
+        return domainValues;
     }
+}

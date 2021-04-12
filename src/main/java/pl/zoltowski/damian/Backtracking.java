@@ -1,5 +1,7 @@
 package pl.zoltowski.damian;
 
+import pl.zoltowski.damian.utils.dataType.Graph;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
