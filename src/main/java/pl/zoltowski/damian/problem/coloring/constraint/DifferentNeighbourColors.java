@@ -1,9 +1,11 @@
 package pl.zoltowski.damian.problem.coloring.constraint;
 
-import pl.zoltowski.damian.Constraint;
+import pl.zoltowski.damian.utils.dataType.Arc;
+import pl.zoltowski.damian.utils.dataType.Constraint;
 import pl.zoltowski.damian.problem.coloring.domain.MCPDomain;
 import pl.zoltowski.damian.utils.dataType.Point;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,5 +36,15 @@ public class DifferentNeighbourColors extends Constraint<Point, MCPDomain> {
                 domain.remove(assignedValue);
             }
         }
+    }
+
+    @Override
+    public List<Arc<Point, MCPDomain>> getArcs() {
+        List<Arc<Point, MCPDomain>> arcs = new ArrayList<>(2);
+
+        arcs.add(new DifferentNeighbourColorsArc(this.variables.get(0), this.variables.get(1)));
+        arcs.add(new DifferentNeighbourColorsArc(this.variables.get(1), this.variables.get(0)));
+
+        return arcs;
     }
 }

@@ -43,8 +43,9 @@ public class MapColoringProblem implements Problem {
     private Graph graph;
     private int[] colors;
     private boolean runForwardChecking;
+    private boolean applyAC3;
 
-    public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, boolean runForwardChecking) {
+    public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, boolean runForwardChecking, boolean applyAC3) {
         this.width = width;
         this.height = height;
         if (vertexesNumber > (width - 1) * (height - 1)) {
@@ -56,9 +57,10 @@ public class MapColoringProblem implements Problem {
         this.colors = new int[this.vertexesNumber];
         Arrays.fill(this.colors, 0);
         this.runForwardChecking = runForwardChecking;
+        this.applyAC3 = applyAC3;
     }
 
-    public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, Graph graph, boolean runForwardChecking) {
+    public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, Graph graph, boolean runForwardChecking, boolean applyAC3) {
         this.width = width;
         this.height = height;
         if (vertexesNumber > (width - 1) * (height - 1)) {
@@ -70,6 +72,7 @@ public class MapColoringProblem implements Problem {
         this.colors = new int[this.vertexesNumber];
         Arrays.fill(this.colors, 0);
         this.runForwardChecking = runForwardChecking;
+        this.applyAC3 = applyAC3;
     }
 
     public void runSpecific() {
@@ -211,14 +214,23 @@ public class MapColoringProblem implements Problem {
         SearchTool<Point, MCPDomain> searchTool = new SearchTool<>(variables, domains);
         applyConstraints(searchTool);
 
+
         if (this.runForwardChecking) {
-            runForwardCheck(searchTool);
+            if (this.applyAC3) {
+                runForwardCheckAC3(searchTool);
+            } else {
+                runForwardCheck(searchTool);
+            }
         } else {
-            runBacktracking(searchTool);
+            if (this.applyAC3) {
+                runBacktrackingAC3(searchTool);
+            } else {
+                runBacktracking(searchTool);
+            }
         }
     }
 
-    private void runBacktracking(SearchTool searchTool) {
+    private void runBacktracking(SearchTool<Point, MCPDomain> searchTool) {
         long startTime = System.nanoTime();
         List<Map<Point, MCPDomain>> result = searchTool.backtrackingSearch();
         long endTime = System.nanoTime();
@@ -227,14 +239,31 @@ public class MapColoringProblem implements Problem {
         System.out.println("BACKTRACKING TIME: " + timeTotal + "ns");
     }
 
-    private void runForwardCheck(SearchTool searchTool) {
+    private void runBacktrackingAC3(SearchTool<Point, MCPDomain> searchTool) {
+        long startTime = System.nanoTime();
+        List<Map<Point, MCPDomain>> result = searchTool.runAC3BackTracking();
+        long endTime = System.nanoTime();
+        long timeTotal = (endTime - startTime);
+        printResult(result);
+        System.out.println("BACKTRACKING TIME: " + timeTotal + "ns");
+    }
+
+    private void runForwardCheck(SearchTool<Point, MCPDomain> searchTool) {
         long startTime = System.nanoTime();
         List<Map<Point, MCPDomain>> result2 = searchTool.forwardCheckingSearch();
         printResult(result2);
         long endTime = System.nanoTime();
         long timeTotal = (endTime - startTime);
         System.out.println("FORWARD SEARCH TIME: " + timeTotal + "ns");
+    }
 
+    private void runForwardCheckAC3(SearchTool<Point, MCPDomain> searchTool) {
+        long startTime = System.nanoTime();
+        List<Map<Point, MCPDomain>> result2 = searchTool.runAC3ForwardCheck();
+        printResult(result2);
+        long endTime = System.nanoTime();
+        long timeTotal = (endTime - startTime);
+        System.out.println("FORWARD SEARCH TIME: " + timeTotal + "ns");
     }
 
     private boolean isSafeToColor(int vertexIndex, int[][] graphMatrix, int colorToCheck) {

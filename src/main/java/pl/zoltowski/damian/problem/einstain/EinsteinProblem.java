@@ -21,10 +21,12 @@ import java.util.Map;
 public class EinsteinProblem implements Problem {
     private List<List<Integer>> solution;
     private boolean runForwardCheck;
+    private boolean applyAC3;
 
-    public EinsteinProblem(boolean runForwardCheck) {
+    public EinsteinProblem(boolean runForwardCheck, boolean applyAC3) {
         this.solution = new ArrayList<>();
         this.runForwardCheck = runForwardCheck;
+        this.applyAC3 = applyAC3;
     }
 
     @Override
@@ -46,10 +48,36 @@ public class EinsteinProblem implements Problem {
         applyConstraints(searchTool);
 
         if(this.runForwardCheck) {
-            runForwardCheck(searchTool);
+            if (this.applyAC3) {
+                runForwardCheckAC3(searchTool);
+            } else {
+                runForwardCheck(searchTool);
+            }
         } else {
-            runBacktrack(searchTool);
+            if (this.applyAC3) {
+                runBacktrackAC3(searchTool);
+            } else {
+                runBacktrack(searchTool);
+            }
         }
+    }
+
+    private void runBacktrackAC3(SearchTool<EinsteinVariable, EinsteinDomain> searchTool) {
+        long startTime = System.nanoTime();
+        List<Map<EinsteinVariable, EinsteinDomain>> result = searchTool.runAC3BackTracking();
+        long endTime = System.nanoTime();
+        long timeTotal = endTime - startTime;
+        printResult(result);
+        System.out.println("BACKTRACKING TIME: " + timeTotal + "ns");
+    }
+
+    private void runForwardCheckAC3(SearchTool<EinsteinVariable, EinsteinDomain> searchTool) {
+        long startTime = System.nanoTime();
+        long endTime = System.nanoTime();
+        long timeTotal = endTime - startTime;
+        List<Map<EinsteinVariable, EinsteinDomain>> result = searchTool.runAC3ForwardCheck();
+        printResult(result);
+        System.out.println("FORWARD SEARCH TIME: " + timeTotal + "ns");
     }
 
     private void runBacktrack(SearchTool<EinsteinVariable, EinsteinDomain> searchTool) {

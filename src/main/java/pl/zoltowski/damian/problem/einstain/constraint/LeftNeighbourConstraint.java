@@ -1,12 +1,11 @@
 package pl.zoltowski.damian.problem.einstain.constraint;
 
-import pl.zoltowski.damian.Constraint;
+import pl.zoltowski.damian.utils.dataType.Arc;
+import pl.zoltowski.damian.utils.dataType.Constraint;
 import pl.zoltowski.damian.problem.einstain.domain.EinsteinDomain;
 import pl.zoltowski.damian.problem.einstain.domain.EinsteinVariable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -57,5 +56,15 @@ public class LeftNeighbourConstraint extends Constraint<EinsteinVariable, Einste
                 it.remove();
             }
         }
+    }
+
+    @Override
+    public List<Arc<EinsteinVariable, EinsteinDomain>> getArcs() {
+        List<Arc<EinsteinVariable, EinsteinDomain>> arcs = new ArrayList<>(2);
+
+        arcs.add(new LeftNeighbourConstraintArc(this.variables.get(0), this.variables.get(1)));
+        arcs.add(new RightNeighbourConstraintArc(this.variables.get(1), this.variables.get(0)));
+
+        return arcs;
     }
 }

@@ -1,9 +1,11 @@
 package pl.zoltowski.damian.problem.einstain.constraint;
 
-import pl.zoltowski.damian.Constraint;
+import pl.zoltowski.damian.utils.dataType.Arc;
+import pl.zoltowski.damian.utils.dataType.Constraint;
 import pl.zoltowski.damian.problem.einstain.domain.EinsteinDomain;
 import pl.zoltowski.damian.problem.einstain.domain.EinsteinVariable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -38,5 +40,20 @@ public class IndividualHouseConstraint extends Constraint<EinsteinVariable, Eins
                 domain.remove(assignedValue);
             }
         }
+    }
+
+    @Override
+    public List<Arc<EinsteinVariable, EinsteinDomain>> getArcs() {
+        List<Arc<EinsteinVariable, EinsteinDomain>> arcs = new ArrayList<>();
+
+        for(EinsteinVariable var1: this.variables) {
+            for(EinsteinVariable var2: this.variables) {
+                if(var1 != var2) {
+                    arcs.add(new IndividualHouseConstraintArc(var1, var2));
+                }
+            }
+        }
+
+        return arcs;
     }
 }

@@ -1,4 +1,4 @@
-package pl.zoltowski.damian;
+package pl.zoltowski.damian.utils.dataType;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -27,4 +27,6 @@ public abstract class Constraint<V, D> {
     public List<V> getVariables() {
         return variables;
     }
+
+    public abstract List<Arc<V,D>> getArcs();
 }
