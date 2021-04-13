@@ -6,6 +6,7 @@ import pl.zoltowski.damian.problem.einstain.domain.EinsteinVariable;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 public class IndividualHouseConstraint extends Constraint<EinsteinVariable, EinsteinDomain> {
@@ -28,5 +29,14 @@ public class IndividualHouseConstraint extends Constraint<EinsteinVariable, Eins
         return true;
     }
 
+    @Override
+    public void removeNotSatisfyingValues(Map<EinsteinVariable, List<EinsteinDomain>> domains, EinsteinVariable variable, EinsteinDomain assignedValue) {
+        for(EinsteinVariable constraintVariable: this.variables) {
+            if(!constraintVariable.equals(variable)) {
+                List<EinsteinDomain> domain = domains.get(constraintVariable);
 
+                domain.remove(assignedValue);
+            }
+        }
+    }
 }

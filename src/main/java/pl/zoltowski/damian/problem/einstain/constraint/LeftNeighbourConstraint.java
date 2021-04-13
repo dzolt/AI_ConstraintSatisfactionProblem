@@ -4,6 +4,11 @@ import pl.zoltowski.damian.Constraint;
 import pl.zoltowski.damian.problem.einstain.domain.EinsteinDomain;
 import pl.zoltowski.damian.problem.einstain.domain.EinsteinVariable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class LeftNeighbourConstraint extends Constraint<EinsteinVariable, EinsteinDomain> {
@@ -20,5 +25,37 @@ public class LeftNeighbourConstraint extends Constraint<EinsteinVariable, Einste
             return true;
         }
         return assigment.get(this.variables.get(0)).getNumber() + 1 == assigment.get(this.variables.get(1)).getNumber();
+    }
+
+    @Override
+    public void removeNotSatisfyingValues(Map<EinsteinVariable, List<EinsteinDomain>> domains, EinsteinVariable variable, EinsteinDomain assignmentValue) {
+        //reduce domain to one element respectively
+        EinsteinVariable variableToDelete;
+        boolean isLeftVariable;
+        int valueToGetNextOrPreviousDomainValue = 0;
+        if(this.variables.get(0).equals(variable)) {
+            isLeftVariable = true;
+            variableToDelete = this.variables.get(1);
+        } else {
+            isLeftVariable = false;
+            variableToDelete = this.variables.get(0);
+        }
+
+        List<EinsteinDomain> domain = domains.get(variableToDelete);
+        //iterate over domain and delete every domain variable except one that suits
+        Iterator<EinsteinDomain> it = domain.iterator();
+
+        if(isLeftVariable) {
+            valueToGetNextOrPreviousDomainValue = 1;
+        } else {
+            valueToGetNextOrPreviousDomainValue = -1;
+        }
+
+        while(it.hasNext()) {
+            EinsteinDomain next = it.next();
+            if(next.getNumber() != assignmentValue.getNumber() + valueToGetNextOrPreviousDomainValue) {
+                it.remove();
+            }
+        }
     }
 }

@@ -2,18 +2,20 @@ package pl.zoltowski.damian;
 
 import pl.zoltowski.damian.utils.dataType.Graph;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class Backtracking<V, D> {
+public class SearchTool<V, D> {
 
     private List<V> variables;
     private Map<V, List<D>> domains;
     private Map<V, List<Constraint<V, D>>> constraints;
 
-    public Backtracking(List<V> variables, Map<V, List<D>> domains) {
+    public SearchTool(List<V> variables, Map<V, List<D>> domains) {
         this.variables = variables;
         this.domains = domains;
         this.constraints = new HashMap<>();
@@ -82,5 +84,62 @@ public class Backtracking<V, D> {
         }
 
         return results;
+    }
+
+    public List<Map<V,D>> forwardCheckingSearch() {
+        return forwardCheckingSearch(new HashMap<>(), copyDomains(this.domains));
+    }
+
+    private List<Map<V,D>> forwardCheckingSearch(Map<V,D> assignment, Map<V, List<D>> domains) {
+        List<Map<V, D>> results = new LinkedList<>();
+
+        if(assignment.size() == variables.size()) {
+            results.add(assignment);
+            return results;
+        }
+
+        V unassignedVariable = getFirstUnassigned(assignment);
+
+        for(D possibleAssignment: domains.get(unassignedVariable)) {
+            Map<V, D> assignmentCopy = new HashMap<>(assignment);
+            assignmentCopy.put(unassignedVariable, possibleAssignment);
+
+            Map<V, List<D>> domainsCopy = copyDomains(domains);
+            domainsCopy.put(unassignedVariable, new ArrayList<>(Collections.singletonList(possibleAssignment)));
+            pruneDomains(domainsCopy, unassignedVariable, possibleAssignment);
+
+            if(!domainWipeOut(domains)) {
+                List<Map<V,D>>  result = forwardCheckingSearch(assignmentCopy, domainsCopy);
+                if(!result.isEmpty()) {
+                    results.addAll(result);
+                }
+            }
+        }
+        return results;
+    }
+
+    private Map<V, List<D>> copyDomains(Map<V, List<D>> domains) {
+        Map<V, List<D>> newDomains = new HashMap<>();
+
+        for(Map.Entry<V,List<D>> entry: domains.entrySet()) {
+            newDomains.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+
+        }
+        return newDomains;
+    }
+
+    private boolean domainWipeOut(Map<V, List<D>> domainsCopy) {
+        for(List<D> domain: domainsCopy.values()) {
+            if(domain.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void pruneDomains(Map<V, List<D>> domains, V variable, D assignedValue) {
+        for(Constraint<V, D> constraint: constraints.get(variable)) {
+            constraint.removeNotSatisfyingValues(domains, variable, assignedValue);
+        }
     }
 }

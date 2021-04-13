@@ -4,8 +4,6 @@ import pl.zoltowski.damian.Constraint;
 import pl.zoltowski.damian.problem.coloring.domain.MCPDomain;
 import pl.zoltowski.damian.utils.dataType.Point;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -25,5 +23,16 @@ public class DifferentNeighbourColors extends Constraint<Point, MCPDomain> {
         }
 
         return assigment.get(variables.get(0)) != assigment.get(variables.get(1));
+    }
+
+    @Override
+    public void removeNotSatisfyingValues(Map<Point, List<MCPDomain>> domains, Point variable, MCPDomain assignedValue) {
+        for(Point pointVariable: variables) {
+            if(!pointVariable.equals(variable)) {
+                List<MCPDomain> domain = domains.get(pointVariable);
+
+                domain.remove(assignedValue);
+            }
+        }
     }
 }

@@ -4,7 +4,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSerializer;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import pl.zoltowski.damian.Backtracking;
+import pl.zoltowski.damian.SearchTool;
 import pl.zoltowski.damian.problem.Problem;
 import pl.zoltowski.damian.problem.coloring.constraint.DifferentNeighbourColors;
 import pl.zoltowski.damian.problem.coloring.domain.MCPDomain;
@@ -42,8 +42,9 @@ public class MapColoringProblem implements Problem {
     private int maxColourNumber;
     private Graph graph;
     private int[] colors;
+    private boolean runForwardChecking;
 
-    public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber) {
+    public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, boolean runForwardChecking) {
         this.width = width;
         this.height = height;
         if (vertexesNumber > (width - 1) * (height - 1)) {
@@ -54,9 +55,10 @@ public class MapColoringProblem implements Problem {
         this.graph = new Graph();
         this.colors = new int[this.vertexesNumber];
         Arrays.fill(this.colors, 0);
+        this.runForwardChecking = runForwardChecking;
     }
 
-    public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, Graph graph) {
+    public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, Graph graph, boolean runForwardChecking) {
         this.width = width;
         this.height = height;
         if (vertexesNumber > (width - 1) * (height - 1)) {
@@ -67,6 +69,7 @@ public class MapColoringProblem implements Problem {
         this.graph = graph;
         this.colors = new int[this.vertexesNumber];
         Arrays.fill(this.colors, 0);
+        this.runForwardChecking = runForwardChecking;
     }
 
     public void runSpecific() {
@@ -82,10 +85,10 @@ public class MapColoringProblem implements Problem {
         }
     }
 
-    private void applyConstraints(Backtracking<Point, MCPDomain> backtracking) {
-        for(Point vertex: this.graph.getKeys()){
-            for(Point connection: this.graph.getAdjVertices(vertex)) {
-                backtracking.addConstraint(new DifferentNeighbourColors(vertex, connection));
+    private void applyConstraints(SearchTool<Point, MCPDomain> searchTool) {
+        for (Point vertex : this.graph.getKeys()) {
+            for (Point connection : this.graph.getAdjVertices(vertex)) {
+                searchTool.addConstraint(new DifferentNeighbourColors(vertex, connection));
             }
         }
     }
@@ -205,14 +208,33 @@ public class MapColoringProblem implements Problem {
             domains.put(p, new ArrayList<>(MCPDomain.BLUE.getNDomainValues(this.maxColourNumber)));
         }
 
-        Backtracking<Point, MCPDomain> backtracking = new Backtracking<>(variables, domains);
-        applyConstraints(backtracking);
+        SearchTool<Point, MCPDomain> searchTool = new SearchTool<>(variables, domains);
+        applyConstraints(searchTool);
 
+        if (this.runForwardChecking) {
+            runForwardCheck(searchTool);
+        } else {
+            runBacktracking(searchTool);
+        }
+    }
 
-        List<Map<Point, MCPDomain>> result = backtracking.backtrackingSearch();
-
-
+    private void runBacktracking(SearchTool searchTool) {
+        long startTime = System.nanoTime();
+        List<Map<Point, MCPDomain>> result = searchTool.backtrackingSearch();
+        long endTime = System.nanoTime();
+        long timeTotal = (endTime - startTime);
         printResult(result);
+        System.out.println("BACKTRACKING TIME: " + timeTotal + "ns");
+    }
+
+    private void runForwardCheck(SearchTool searchTool) {
+        long startTime = System.nanoTime();
+        List<Map<Point, MCPDomain>> result2 = searchTool.forwardCheckingSearch();
+        printResult(result2);
+        long endTime = System.nanoTime();
+        long timeTotal = (endTime - startTime);
+        System.out.println("FORWARD SEARCH TIME: " + timeTotal + "ns");
+
     }
 
     private boolean isSafeToColor(int vertexIndex, int[][] graphMatrix, int colorToCheck) {
@@ -306,14 +328,16 @@ public class MapColoringProblem implements Problem {
                         graphTransformed[i][j] = 0;
                     }
                 }
-
             }
         }
-
         return graphTransformed;
     }
 
     private void printResult(List<Map<Point, MCPDomain>> result) {
+        if (result.isEmpty()) {
+            System.out.println("THIS PROBLEM CANNOT BE SOLVED WITH: " + this.maxColourNumber + " colors!");
+            return;
+        }
         int i = 0;
         for (Map<Point, MCPDomain> assignment : result) {
             System.out.println("SOLUTION: " + i++);

@@ -22,7 +22,7 @@ public abstract class Constraint<V, D> {
 
     public abstract boolean satisfied(Map<V, D> assigment);
 
-//    public abstract void removeNotSatisfyingValues(Map<V, List<D>> domains, V variable, D value);
+    public abstract void removeNotSatisfyingValues(Map<V, List<D>> domains, V variable, D value);
 
     public List<V> getVariables() {
         return variables;

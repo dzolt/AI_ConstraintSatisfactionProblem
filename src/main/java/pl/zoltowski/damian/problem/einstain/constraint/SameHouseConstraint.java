@@ -4,6 +4,8 @@ import pl.zoltowski.damian.Constraint;
 import pl.zoltowski.damian.problem.einstain.domain.EinsteinDomain;
 import pl.zoltowski.damian.problem.einstain.domain.EinsteinVariable;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class SameHouseConstraint extends Constraint<EinsteinVariable, EinsteinDomain> {
@@ -21,5 +23,20 @@ public class SameHouseConstraint extends Constraint<EinsteinVariable, EinsteinDo
         }
 
         return assigment.get(this.variables.get(0)) == assigment.get(this.variables.get(1));
+    }
+
+    @Override
+    public void removeNotSatisfyingValues(Map<EinsteinVariable, List<EinsteinDomain>> domains, EinsteinVariable variable, EinsteinDomain assignedValue) {
+        EinsteinVariable variableToRemove;
+
+        if(this.variables.get(0).equals(variable)) {
+            variableToRemove = this.variables.get(1);
+        } else {
+            variableToRemove = this.variables.get(0);
+        }
+
+        domains.put(variableToRemove, Collections.singletonList(assignedValue));
+//        List<EinsteinDomain> domain = domains.get(variableToRemove);
+        // or iterator and remove everything except assignedValue
     }
 }
