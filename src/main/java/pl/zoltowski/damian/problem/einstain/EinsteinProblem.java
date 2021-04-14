@@ -9,6 +9,8 @@ import pl.zoltowski.damian.problem.einstain.constraint.NeighbourHouseConstraint;
 import pl.zoltowski.damian.problem.einstain.constraint.SameHouseConstraint;
 import pl.zoltowski.damian.problem.einstain.domain.EinsteinDomain;
 import pl.zoltowski.damian.problem.einstain.domain.EinsteinVariable;
+import pl.zoltowski.damian.utils.dataType.DomainHeuristic;
+import pl.zoltowski.damian.utils.dataType.VariableHeuristic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,11 +24,15 @@ public class EinsteinProblem implements Problem {
     private List<List<Integer>> solution;
     private boolean runForwardCheck;
     private boolean applyAC3;
+    private VariableHeuristic variableHeuristic;
+    private DomainHeuristic domainHeuristic;
 
-    public EinsteinProblem(boolean runForwardCheck, boolean applyAC3) {
+    public EinsteinProblem(boolean runForwardCheck, boolean applyAC3, VariableHeuristic variableHeuristic, DomainHeuristic domainHeuristic) {
         this.solution = new ArrayList<>();
         this.runForwardCheck = runForwardCheck;
         this.applyAC3 = applyAC3;
+        this.variableHeuristic = variableHeuristic;
+        this.domainHeuristic = domainHeuristic;
     }
 
     @Override
@@ -43,7 +49,7 @@ public class EinsteinProblem implements Problem {
         //apply hint middle house owner drinks milk
         domains.put(EinsteinVariable.MILK, new ArrayList<>(Collections.singletonList(EinsteinDomain.THIRD)));
 
-        SearchTool<EinsteinVariable, EinsteinDomain> searchTool = new SearchTool<>(variables, domains);
+        SearchTool<EinsteinVariable, EinsteinDomain> searchTool = new SearchTool<>(variables, domains, this.variableHeuristic, this.domainHeuristic);
         //apply rest of the hints
         applyConstraints(searchTool);
 

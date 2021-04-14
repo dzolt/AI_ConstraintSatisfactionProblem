@@ -2,9 +2,13 @@ package pl.zoltowski.damian;
 
 import pl.zoltowski.damian.utils.dataType.Arc;
 import pl.zoltowski.damian.utils.dataType.Constraint;
+import pl.zoltowski.damian.utils.dataType.DomainHeuristic;
+import pl.zoltowski.damian.utils.dataType.Tuple;
+import pl.zoltowski.damian.utils.dataType.VariableHeuristic;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,8 +23,10 @@ public class SearchTool<V, D> {
     private List<V> variables;
     private Map<V, List<D>> domains;
     private Map<V, List<Constraint<V, D>>> constraints;
+    private VariableHeuristic variableHeuristic;
+    private DomainHeuristic domainHeuristic;
 
-    public SearchTool(List<V> variables, Map<V, List<D>> domains) {
+    public SearchTool(List<V> variables, Map<V, List<D>> domains, VariableHeuristic variableHeuristic, DomainHeuristic domainHeuristic) {
         this.variables = variables;
         this.domains = domains;
         this.constraints = new HashMap<>();
@@ -31,6 +37,8 @@ public class SearchTool<V, D> {
             if (!domains.containsKey(variable))
                 throw new IllegalArgumentException("Each variable has to have domain");
         }
+        this.variableHeuristic = variableHeuristic;
+        this.domainHeuristic = domainHeuristic;
     }
 
     public void addConstraint(Constraint<V, D> constraint) {
@@ -47,7 +55,6 @@ public class SearchTool<V, D> {
             if (!constraint.satisfied(assigment))
                 return false;
         }
-
         return true;
     }
 
@@ -56,8 +63,23 @@ public class SearchTool<V, D> {
             if (!assigment.containsKey(variable))
                 return variable;
         }
-
         return null;
+    }
+
+    private V getFirstUnassignedWithLeastDomain(Map<V, D> assigment) {
+        V variableWithLeastDomain = null;
+        for(V variable: this.variables) {
+            if(!assigment.containsKey(variable)) {
+                if(variableWithLeastDomain == null) {
+                    variableWithLeastDomain = variable;
+                }
+                if(this.domains.get(variable).size() < this.domains.get(variableWithLeastDomain).size()) {
+                    variableWithLeastDomain = variable;
+                }
+            }
+
+        }
+        return variableWithLeastDomain;
     }
 
     public List<Map<V, D>> backtrackingSearch() {
@@ -73,9 +95,15 @@ public class SearchTool<V, D> {
             return results;
         }
 
-        V unassigned = getFirstUnassigned(assigment);
+        V unassigned;
 
-        for (D value : this.domains.get(unassigned)) {
+        if (this.variableHeuristic == VariableHeuristic.MRV) {
+            unassigned = getFirstUnassignedWithLeastDomain(assigment);
+        } else {
+            unassigned = getFirstUnassigned(assigment);
+        }
+
+        for (D value : orderDomainValues(unassigned, this.domains.get(unassigned), assigment)) {
 
             Map<V, D> assigment_copy = new HashMap<>(assigment);
             assigment_copy.put(unassigned, value);
@@ -89,6 +117,42 @@ public class SearchTool<V, D> {
         }
 
         return results;
+    }
+
+
+    private Iterable<? extends D> orderDomainValues(V variable, List<D> domains, Map<V, D> assigment) {
+        List<D> sortedDomain = new ArrayList<>();
+        List<Tuple<D,Integer>> conflicts = new ArrayList<>();
+
+        if (this.domainHeuristic == DomainHeuristic.NONE) {
+            return domains;
+        }
+        else if(this.domainHeuristic == DomainHeuristic.REVERSE) {
+            Collections.reverse(domains);
+            return domains;
+        } else {
+            for(D value: domains) {
+                conflicts.add(new Tuple<>(value, calculateConflicts(variable, value, assigment)));
+            }
+            conflicts.sort(Comparator.comparing(Tuple::getSecond));
+            for(Tuple<D, Integer> domainValue: conflicts) {
+                sortedDomain.add(domainValue.getFirst());
+            }
+            return sortedDomain;
+        }
+    }
+
+    private Integer calculateConflicts(V variable, D value, Map<V,D> assigment) {
+        Integer numberOfConflicts = 0;
+        Map<V, D> assigmentCopy = new HashMap<>(assigment);
+        assigmentCopy.put(variable, value);
+        for(Constraint<V, D> constraint: this.constraints.get(variable)) {
+            if(!constraint.satisfied(assigmentCopy)) {
+                numberOfConflicts++;
+            }
+        }
+        assigmentCopy.remove(variable);
+        return numberOfConflicts;
     }
 
     private List<Map<V, D>> forwardCheckingSearch(Map<V, D> assignment, Map<V, List<D>> domains) {
@@ -123,7 +187,7 @@ public class SearchTool<V, D> {
         return forwardCheckingSearch(new HashMap<>(), copyDomains(this.domains));
     }
 
-    private Map<V, List<D>> copyDomains(Map<V, List<D>> domains) {
+    public Map<V, List<D>> copyDomains(Map<V, List<D>> domains) {
         Map<V, List<D>> newDomains = new HashMap<>();
 
         for (Map.Entry<V, List<D>> entry : domains.entrySet()) {
@@ -167,33 +231,33 @@ public class SearchTool<V, D> {
 
         Queue<Arc<V, D>> queue = new LinkedList<>();
 
-        for(Map.Entry<V, List<Constraint<V, D>>> entry: this.constraints.entrySet()) {
-            for(Constraint<V, D> constraint: entry.getValue()) {
-                for(Arc<V,D> arc : constraint.getArcs()) {
-                    if(allArcs.get(arc.getVariable2()).add(arc)) {
+        for (Map.Entry<V, List<Constraint<V, D>>> entry : this.constraints.entrySet()) {
+            for (Constraint<V, D> constraint : entry.getValue()) {
+                for (Arc<V, D> arc : constraint.getArcs()) {
+                    if (allArcs.get(arc.getVariable2()).add(arc)) {
                         queue.add(arc);
                     }
                 }
             }
         }
 
-        while(!queue.isEmpty()) {
-            Arc<V,D> currentArc = queue.poll();
+        while (!queue.isEmpty()) {
+            Arc<V, D> currentArc = queue.poll();
             boolean domainChanged = false;
 
             Iterator<D> domainIterator = this.domains.get(currentArc.getVariable1()).iterator();
 
-            while(domainIterator.hasNext()) {
+            while (domainIterator.hasNext()) {
                 D value = domainIterator.next();
-                if(!currentArc.isConstraintSatisfied(value, this.domains.get(currentArc.getVariable2()))) {
+                if (!currentArc.isConstraintSatisfied(value, this.domains.get(currentArc.getVariable2()))) {
                     domainIterator.remove();
                     domainChanged = true;
                 }
             }
 
-            if(domainChanged) {
-                for(Arc<V, D> arc: allArcs.get(currentArc.getVariable1())) {
-                    if(!queue.contains(arc)) {
+            if (domainChanged) {
+                for (Arc<V, D> arc : allArcs.get(currentArc.getVariable1())) {
+                    if (!queue.contains(arc)) {
                         queue.add(arc);
                     }
                 }

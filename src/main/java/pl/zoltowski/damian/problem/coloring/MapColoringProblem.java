@@ -11,7 +11,9 @@ import pl.zoltowski.damian.problem.coloring.domain.MCPDomain;
 import pl.zoltowski.damian.python.PythonProcessBuilder;
 import pl.zoltowski.damian.utils.MCPJsonSerializer;
 import pl.zoltowski.damian.utils.SegmentHelper;
+import pl.zoltowski.damian.utils.dataType.DomainHeuristic;
 import pl.zoltowski.damian.utils.dataType.Graph;
+import pl.zoltowski.damian.utils.dataType.VariableHeuristic;
 import pl.zoltowski.damian.utils.dataType.Point;
 import pl.zoltowski.damian.utils.dataType.Segment;
 import pl.zoltowski.damian.utils.dataType.Tuple;
@@ -44,8 +46,10 @@ public class MapColoringProblem implements Problem {
     private int[] colors;
     private boolean runForwardChecking;
     private boolean applyAC3;
+    private VariableHeuristic variableHeuristic;
+    private DomainHeuristic domainHeuristic;
 
-    public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, boolean runForwardChecking, boolean applyAC3) {
+    public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, boolean runForwardChecking, boolean applyAC3, VariableHeuristic variableHeuristic, DomainHeuristic domainHeuristic) {
         this.width = width;
         this.height = height;
         if (vertexesNumber > (width - 1) * (height - 1)) {
@@ -58,9 +62,11 @@ public class MapColoringProblem implements Problem {
         Arrays.fill(this.colors, 0);
         this.runForwardChecking = runForwardChecking;
         this.applyAC3 = applyAC3;
+        this.variableHeuristic = variableHeuristic;
+        this.domainHeuristic = domainHeuristic;
     }
 
-    public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, Graph graph, boolean runForwardChecking, boolean applyAC3) {
+    public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, Graph graph, boolean runForwardChecking, boolean applyAC3, VariableHeuristic variableHeuristic, DomainHeuristic domainHeuristic) {
         this.width = width;
         this.height = height;
         if (vertexesNumber > (width - 1) * (height - 1)) {
@@ -73,6 +79,8 @@ public class MapColoringProblem implements Problem {
         Arrays.fill(this.colors, 0);
         this.runForwardChecking = runForwardChecking;
         this.applyAC3 = applyAC3;
+        this.variableHeuristic = variableHeuristic;
+        this.domainHeuristic = domainHeuristic;
     }
 
     public void runSpecific() {
@@ -211,7 +219,7 @@ public class MapColoringProblem implements Problem {
             domains.put(p, new ArrayList<>(MCPDomain.BLUE.getNDomainValues(this.maxColourNumber)));
         }
 
-        SearchTool<Point, MCPDomain> searchTool = new SearchTool<>(variables, domains);
+        SearchTool<Point, MCPDomain> searchTool = new SearchTool<>(variables, domains, this.variableHeuristic, this.domainHeuristic);
         applyConstraints(searchTool);
 
 
