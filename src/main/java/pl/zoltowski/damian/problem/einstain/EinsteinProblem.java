@@ -26,6 +26,7 @@ public class EinsteinProblem implements Problem {
     private boolean applyAC3;
     private VariableHeuristic variableHeuristic;
     private DomainHeuristic domainHeuristic;
+    private int numberOfVisitedVertexes;
 
     public EinsteinProblem(boolean runForwardCheck, boolean applyAC3, VariableHeuristic variableHeuristic, DomainHeuristic domainHeuristic) {
         this.solution = new ArrayList<>();
@@ -66,42 +67,43 @@ public class EinsteinProblem implements Problem {
                 runBacktrack(searchTool);
             }
         }
+        this.numberOfVisitedVertexes = searchTool.getNumberOfVisitedVertexes();
     }
 
     private void runBacktrackAC3(SearchTool<EinsteinVariable, EinsteinDomain> searchTool) {
-        long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
         List<Map<EinsteinVariable, EinsteinDomain>> result = searchTool.runAC3BackTracking();
-        long endTime = System.nanoTime();
+        long endTime = System.currentTimeMillis();
         long timeTotal = endTime - startTime;
-        printResult(result);
-        System.out.println("BACKTRACKING TIME: " + timeTotal + "ns");
+       // printResult(result);
+        System.out.println("BACKTRACKING TIME: " + timeTotal + "ms");
     }
 
     private void runForwardCheckAC3(SearchTool<EinsteinVariable, EinsteinDomain> searchTool) {
-        long startTime = System.nanoTime();
-        long endTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
+        long endTime = System.currentTimeMillis();
         long timeTotal = endTime - startTime;
         List<Map<EinsteinVariable, EinsteinDomain>> result = searchTool.runAC3ForwardCheck();
-        printResult(result);
-        System.out.println("FORWARD SEARCH TIME: " + timeTotal + "ns");
+       // printResult(result);
+        System.out.println("FORWARD SEARCH TIME: " + timeTotal + "ms");
     }
 
     private void runBacktrack(SearchTool<EinsteinVariable, EinsteinDomain> searchTool) {
-        long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
         List<Map<EinsteinVariable, EinsteinDomain>> result = searchTool.backtrackingSearch();
-        long endTime = System.nanoTime();
+        long endTime = System.currentTimeMillis();
         long timeTotal = endTime - startTime;
-        printResult(result);
-        System.out.println("BACKTRACKING TIME: " + timeTotal + "ns");
+       // printResult(result);
+        System.out.println("BACKTRACKING TIME: " + timeTotal + "ms");
     }
 
     private void runForwardCheck(SearchTool<EinsteinVariable, EinsteinDomain> searchTool) {
-        long startTime = System.nanoTime();
-        long endTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
+        long endTime = System.currentTimeMillis();
         long timeTotal = endTime - startTime;
         List<Map<EinsteinVariable, EinsteinDomain>> result = searchTool.forwardCheckingSearch();
-        printResult(result);
-        System.out.println("FORWARD SEARCH TIME: " + timeTotal + "ns");
+       // printResult(result);
+        System.out.println("FORWARD SEARCH TIME: " + timeTotal + "ms");
     }
 
     private void printResult(List<Map<EinsteinVariable, EinsteinDomain>> result) {

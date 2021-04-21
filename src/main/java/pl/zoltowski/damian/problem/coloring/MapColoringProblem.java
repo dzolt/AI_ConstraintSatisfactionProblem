@@ -48,6 +48,7 @@ public class MapColoringProblem implements Problem {
     private boolean applyAC3;
     private VariableHeuristic variableHeuristic;
     private DomainHeuristic domainHeuristic;
+    private int numberOfVisitedVertexes;
 
     public MapColoringProblem(int width, int height, int vertexesNumber, int maxColourNumber, boolean runForwardChecking, boolean applyAC3, VariableHeuristic variableHeuristic, DomainHeuristic domainHeuristic) {
         this.width = width;
@@ -181,7 +182,7 @@ public class MapColoringProblem implements Problem {
                 double otherVertexYMinRange = Math.min(startingPoint.getY(), endingPoint.getY());
                 if (otherVertex.getX() <= otherVertexXMaxRange && otherVertex.getX() >= otherVertexXMinRange &&
                     otherVertex.getY() <= otherVertexYMaxRange && otherVertex.getY() >= otherVertexYMinRange && pDistance(startingPoint, endingPoint, otherVertex) == 0.0) {
-                    System.out.println("LINE " + startingPoint + ", " + endingPoint + " IS INTERSECTING WITH OTHER VERTEX " + otherVertex);
+//                    System.out.println("LINE " + startingPoint + ", " + endingPoint + " IS INTERSECTING WITH OTHER VERTEX " + otherVertex);
                     return true;
                 }
             }
@@ -236,42 +237,43 @@ public class MapColoringProblem implements Problem {
                 runBacktracking(searchTool);
             }
         }
+        this.numberOfVisitedVertexes = searchTool.getNumberOfVisitedVertexes();
     }
 
     private void runBacktracking(SearchTool<Point, MCPDomain> searchTool) {
-        long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
         List<Map<Point, MCPDomain>> result = searchTool.backtrackingSearch();
-        long endTime = System.nanoTime();
+        long endTime = System.currentTimeMillis();
         long timeTotal = (endTime - startTime);
         printResult(result);
-        System.out.println("BACKTRACKING TIME: " + timeTotal + "ns");
+        System.out.println("BACKTRACKING TIME: " + timeTotal + "ms");
     }
 
     private void runBacktrackingAC3(SearchTool<Point, MCPDomain> searchTool) {
-        long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
         List<Map<Point, MCPDomain>> result = searchTool.runAC3BackTracking();
-        long endTime = System.nanoTime();
+        long endTime = System.currentTimeMillis();
         long timeTotal = (endTime - startTime);
         printResult(result);
-        System.out.println("BACKTRACKING TIME: " + timeTotal + "ns");
+        System.out.println("BACKTRACKING TIME: " + timeTotal + "ms");
     }
 
     private void runForwardCheck(SearchTool<Point, MCPDomain> searchTool) {
-        long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
         List<Map<Point, MCPDomain>> result2 = searchTool.forwardCheckingSearch();
         printResult(result2);
-        long endTime = System.nanoTime();
+        long endTime = System.currentTimeMillis();
         long timeTotal = (endTime - startTime);
-        System.out.println("FORWARD SEARCH TIME: " + timeTotal + "ns");
+        System.out.println("FORWARD SEARCH TIME: " + timeTotal + "ms");
     }
 
     private void runForwardCheckAC3(SearchTool<Point, MCPDomain> searchTool) {
-        long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
         List<Map<Point, MCPDomain>> result2 = searchTool.runAC3ForwardCheck();
         printResult(result2);
-        long endTime = System.nanoTime();
+        long endTime = System.currentTimeMillis();
         long timeTotal = (endTime - startTime);
-        System.out.println("FORWARD SEARCH TIME: " + timeTotal + "ns");
+        System.out.println("FORWARD SEARCH TIME: " + timeTotal + "ms");
     }
 
     private boolean isSafeToColor(int vertexIndex, int[][] graphMatrix, int colorToCheck) {
@@ -375,10 +377,10 @@ public class MapColoringProblem implements Problem {
             System.out.println("THIS PROBLEM CANNOT BE SOLVED WITH: " + this.maxColourNumber + " colors!");
             return;
         }
-        int i = 0;
-        for (Map<Point, MCPDomain> assignment : result) {
-            System.out.println("SOLUTION: " + i++);
-            System.out.println(assignment);
-        }
+//        int i = 0;
+//        for (Map<Point, MCPDomain> assignment : result) {
+//            System.out.println("SOLUTION: " + i++);
+//            System.out.println(assignment);
+//        }
     }
 }

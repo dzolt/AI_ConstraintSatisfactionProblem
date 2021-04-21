@@ -25,6 +25,7 @@ public class SearchTool<V, D> {
     private Map<V, List<Constraint<V, D>>> constraints;
     private VariableHeuristic variableHeuristic;
     private DomainHeuristic domainHeuristic;
+    private int numberOfVisitedVertexes;
 
     public SearchTool(List<V> variables, Map<V, List<D>> domains, VariableHeuristic variableHeuristic, DomainHeuristic domainHeuristic) {
         this.variables = variables;
@@ -39,6 +40,7 @@ public class SearchTool<V, D> {
         }
         this.variableHeuristic = variableHeuristic;
         this.domainHeuristic = domainHeuristic;
+        this.numberOfVisitedVertexes = 0;
     }
 
     public void addConstraint(Constraint<V, D> constraint) {
@@ -104,7 +106,7 @@ public class SearchTool<V, D> {
         }
 
         for (D value : orderDomainValues(unassigned, this.domains.get(unassigned), assigment)) {
-
+            this.numberOfVisitedVertexes++;
             Map<V, D> assigment_copy = new HashMap<>(assigment);
             assigment_copy.put(unassigned, value);
 
@@ -166,6 +168,7 @@ public class SearchTool<V, D> {
         V unassignedVariable = getFirstUnassigned(assignment);
 
         for (D possibleAssignment : domains.get(unassignedVariable)) {
+            this.numberOfVisitedVertexes++;
             Map<V, D> assignmentCopy = new HashMap<>(assignment);
             assignmentCopy.put(unassignedVariable, possibleAssignment);
 
@@ -263,5 +266,9 @@ public class SearchTool<V, D> {
                 }
             }
         }
+    }
+
+    public int getNumberOfVisitedVertexes() {
+        return this.numberOfVisitedVertexes;
     }
 }
